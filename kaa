@@ -1,0 +1,230 @@
+library(tidyverse)
+x<-sample(1:21,20,replace=TRUE)
+y<-sample(1:10,20,replace=TRUE)
+for(i in 1:20){
+  a<-x[i]
+  b<-y[i]
+  mtcars[a,b]=NA
+}
+which(is.na(mtcars))
+sum(is.na(mtcars))
+na.exclude(mtcars)
+view(mtcars)
+dispna<-apply(mtcars['disp'],2,mean,na.rm=TRUE)
+view(dispna)
+newcars<-mtcars%>%
+  mutate(disp=ifelse(is.na(disp),dispna,disp),)
+view(newcars)
+
+
+
+arr<-c(1,2,3,4,5,6,7,8,9,10)
+#min-max
+minarr<-min(arr)
+maxarr<-max(arr)
+arr2<-arr
+for(i in 1:10){
+  arr2[i]=round((arr[i]-minarr)/(maxarr-minarr))
+}
+print(arr2)
+#z-score
+meanarr<-mean(arr)
+sdarr<-sd(arr)
+for(i in 1:10){
+  arr2[i]=round((arr[i]-meanarr)/sdarr,2)
+}
+print(arr2)
+
+
+
+library(leaps)
+view(Titanic)
+sum(is.na(Titanic))
+Titanic<-Titanic%>%
+  na.omit()
+dim(Titanic)
+fwd=regsubsets(Freq~.,data=Titanic,nvmax=19,method="forward")
+bwd=regsubsets(Freq~.,data=Titanic,nvmax=19,method="backward")
+full=regsubsets(Freq~.,data=Titanic,nvmax=19)
+summary(fwd)
+summary(bwd)
+summary(full)
+coef(fwd,3)
+coef(bwd,3)
+coef(full,3)
+
+
+
+library(leaps)
+view(Titanic)
+sum(is.na(Titanic))
+Titanic<-Titanic%>%
+  na.omit()
+dim(Titanic)
+fwd=regsubsets(Freq~.,data=Titanic,nvmax=19,method="forward")
+bwd=regsubsets(Freq~.,data=Titanic,nvmax=19,method="backward")
+full=regsubsets(Freq~.,data=Titanic,nvmax=19)
+summary(fwd)
+summary(bwd)
+summary(full)
+coef(fwd,3)
+coef(bwd,3)
+coef(full,3)
+
+
+library(tidyverse) 
+titanic=read.csv("C:/Users/Naveen/Documents/titanic.csv")
+head(titanic) 
+#sapply(titanic, class) 
+titanic$Sex  = as.factor(titanic$Sex) 
+titanic$Survived = as.factor(titanic$Survived) 
+summary(titanic) 
+dropnull_titanic = titanic[rowSums(is.na(titanic)) <= 0, ] 
+survivedList = dropnull_titanic[dropnull_titanic$Survived == 1 , ] 
+notSurvivedList = dropnull_titanic[dropnull_titanic$Survived == 0, ] 
+mytable <- table(titanic$Survived) 
+lbls <- paste(names(titanic), "\n", mytable, sep = "") 
+pie( mytable,labels = lbls,main = "pie chart") 
+hist(titanic$Age, xlab = "gender", ylab = "frequency") 
+barplot(table(notSurvivedList$Sex), xlab = "gender", ylab = "frequency") 
+temp <- density(table(survivedList$Fare)) 
+plot(temp, type = "n", main = "fare charged") 
+polygon(temp, col = "lightgray", border = "gray") 
+boxplot(titanic$Fare, main = "fare")
+
+
+
+library(caTools)
+library(ggplot2)
+data<-data.frame(
+  Years_Exp=c(1.1, 1.3, 1.5, 2.0, 2.2, 2.9, 3.0, 3.2, 3.2, 3.7),
+  Salary=c(39343.00, 46205.00, 37731.00, 43525.00, 
+            39891.00, 56642.00, 60150.00, 54445.00, 64445.00, 57189.00)
+)
+split=sample.split(data,SplitRatio = 0.7)
+train=subset(data,split==TRUE)
+test=subset(data,split==FALSE)
+lm.r=lm(formula=Salary~Years_Exp,data=train)
+print(coef(lm.r))
+ggplot()+geom_point(aes(x=train$Years_Exp,y=train$Salary),col='red')+geom_line(aes(x=train$Years_Exp,y=predict(lm.r,newdata=train)),col='blue')+ggtitle("salary vs exp")+xlab("yoe")+ylab("exp")
+
+
+
+# Libraries
+library(tidyverse)
+library(ROCR)
+library(caTools)
+
+# Data split
+split <- sample.split(mtcars, SplitRatio = 0.8)
+train <- subset(mtcars, split == TRUE)
+test <- subset(mtcars, split == FALSE)
+
+# Logistic Regression Model
+logistic_model <- glm(vs ~ wt + disp, data = train, family = binomial)
+summary(logistic_model)
+
+# Predictions
+predict_prob <- predict(logistic_model, test, type = "response")
+predict_reg <- ifelse(predict_prob > 0.5, 1, 0)
+
+# Confusion Matrix
+table(test$vs, predict_reg)
+
+# Accuracy Calculation
+missing_classerr <- mean(predict_reg != test$vs)
+print(paste("Accuracy =", round(1 - missing_classerr, 4)))
+
+# Logistic Regression Curve
+ggplot(mtcars, aes(x = wt+disp, y = vs)) +
+  geom_point(alpha = .5) +
+  stat_smooth(method = "glm", se = FALSE, method.args = list(family = binomial), col = "red")
+
+# ROC and AUC
+ROCPred <- prediction(predict_reg, test$vs)
+ROCPer <- performance(ROCPred, measure = "tpr", x.measure = "fpr")
+auc <- performance(ROCPred, measure = "auc")
+auc_value <- auc@y.values[[1]]
+
+# Plot ROC Curve
+plot(ROCPer, colorize = TRUE, print.cutoffs.at = seq(0.1, by = 0.1), main = "ROC Curve")
+abline(a = 0, b = 1)
+
+# AUC Value
+legend(0.6, 0.4, paste("AUC =", round(auc_value, 4)), title = "AUC", cex = 1)
+
+
+
+library(tidyverse)
+library(partykit)
+library(caTools)
+weatherdata <- read.csv("C:/Users/Naveen/Documents/seattle-weather.csv")
+head(weatherdata)
+str(weatherdata)
+weatherdata$weather <- as.factor(weatherdata$weather)
+split=sample.split(weatherdata$weather, SplitRatio=0.8)
+train=subset(weatherdata, split==TRUE)
+test=subset(weatherdata, split==FALSE)
+model <- ctree(weather ~ precipitation + temp_max + temp_min + wind, data = train)
+plot(model)
+predict_model <- predict(model, test)
+mat <- table(test$weather, predict_model)
+print(mat)
+accuracy <- sum(diag(mat)) / sum(mat)
+print(paste("Accuracy:", accuracy))
+
+
+
+
+library(lubridate)
+library(forecast)
+positiveCases <- c(580, 7813, 28266, 59287, 75700, 87820, 95314, 126214, 
+                   218843, 471497, 936851, 1508725, 2072113) 
+deaths <- c(17, 270, 565, 1261, 2126, 2800, 3285, 4628, 8951, 
+            21283, 47210, 88480, 138475) 
+start_date <- decimal_date(ymd("2020-01-22"))
+frequency <- 365.25 / 7
+mts <- ts(cbind(positiveCases, deaths), start = start_date, frequency = frequency)
+png(file = "multivariateTimeSeries.png")
+print(plot(mts, xlab ="Weekly Data", main ="COVID-19 Cases", col.main = "darkgreen"))
+dev.off() # Close the plotting device
+message("multivariateTimeSeries.png has been created.")
+png(file = "timeseries.png")
+mts1 <- ts(positiveCases, start = start_date, frequency = frequency)
+fit <- auto.arima(mts1) # Fit ARIMA model
+forecast_fit <- forecast(fit, h = 5) # Forecast for 5 periods
+print(plot(forecast_fit, xlab = "Weekly Data", ylab = "Positive Cases", main = "COVID-19", col.main = "green"))
+dev.off() # Close the plotting device
+message("timeseries.png has been created.")
+
+
+
+View(airquality) 
+barplot(airquality$Ozone,  
+        main = 'Ozone Concenteration in air',  
+        xlab = 'ozone levels', horiz = TRUE)  
+hist(airquality$Temp, main ="La Guardia Airport's\  
+Maximum Temperature(Daily)",  
+     xlab ="Temperature(Fahrenheit)",  
+     xlim = c(50, 125), col ="yellow",  
+     freq = TRUE)  
+boxplot(airquality[, 0:4],   
+        main ='Box Plots for Air Quality Parameters')  
+plot(airquality$Ozone, airquality$Month,  
+     main ="Scatterplot Example",  
+     xlab ="Ozone Concentration in parts per billion",  
+     ylab =" Month of observation ", pch = 19)  
+data <- matrix(rnorm(50, 0, 5), nrow = 5, ncol = 5)  
+
+# Column names  
+colnames(data) <- paste0("col", 1:5)  
+rownames(data) <- paste0("row", 1:5)  
+
+# Draw a heatmap  
+heatmap(data)
+
+
+
+
+
+  
