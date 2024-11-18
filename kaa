@@ -54,44 +54,75 @@ coef(bwd,3)
 coef(full,3)
 
 
+# Install and load necessary packages
+install.packages("tidyr")  # For drop_na function
+library(tidyr)
 
-library(leaps)
-view(Titanic)
-sum(is.na(Titanic))
-Titanic<-Titanic%>%
-  na.omit()
-dim(Titanic)
-fwd=regsubsets(Freq~.,data=Titanic,nvmax=19,method="forward")
-bwd=regsubsets(Freq~.,data=Titanic,nvmax=19,method="backward")
-full=regsubsets(Freq~.,data=Titanic,nvmax=19)
-summary(fwd)
-summary(bwd)
-summary(full)
-coef(fwd,3)
-coef(bwd,3)
-coef(full,3)
+# Set seed for reproducibility
+set.seed(123)
+
+# Create a sample dataset
+day <- data.frame(
+  temp = rnorm(100, mean = 20, sd = 5),       # Random temperatures
+  hum = rnorm(100, mean = 60, sd = 10),        # Random humidity percentages
+  windspeed = rnorm(100, mean = 10, sd = 3)    # Random wind speeds
+)
+
+# Add some outliers
+day$temp[c(10, 20, 30)] <- c(40, 45, 50)      # Adding extreme temperatures
+day$hum[c(15, 25, 35)] <- c(10, 5, 0)         # Adding extreme humidity values
+day$windspeed[c(40, 50, 60)] <- c(25, 30, 35) # Adding extreme wind speeds
+
+# Add some missing values
+day$temp[c(5, 15)] <- NA
+day$hum[c(10, 20)] <- NA
+day$windspeed[c(30, 40)] <- NA
+
+# View the first few rows of the dataset
+print(head(day))
+
+# Check for missing values in the dataset
+print(sum(is.na(day)))
+
+# Create boxplots for initial data inspection
+boxplot(day[, c("temp", "hum", "windspeed")], main = "Boxplots of Raw Data")
+
+# Handle outliers in specific columns
+for(i in c("hum", "windspeed")) {
+  data <- unlist(day[i])
+  outliers <- boxplot.stats(data)$out
+  data[data %in% outliers] <- NA
+  day[i] <- data
+}
+
+# Check for missing values after handling outliers
+print(sum(is.na(day)))
+
+# Drop rows with missing values
+day_clean <- drop_na(day)
+
+# Create boxplots for cleaned data
+boxplot(day_clean[, c("temp", "hum", "windspeed")], main = "Boxplots of Cleaned Data")
 
 
-library(tidyverse) 
-titanic=read.csv("C:/Users/Naveen/Documents/titanic.csv")
-head(titanic) 
-#sapply(titanic, class) 
-titanic$Sex  = as.factor(titanic$Sex) 
-titanic$Survived = as.factor(titanic$Survived) 
-summary(titanic) 
-dropnull_titanic = titanic[rowSums(is.na(titanic)) <= 0, ] 
-survivedList = dropnull_titanic[dropnull_titanic$Survived == 1 , ] 
-notSurvivedList = dropnull_titanic[dropnull_titanic$Survived == 0, ] 
-mytable <- table(titanic$Survived) 
-lbls <- paste(names(titanic), "\n", mytable, sep = "") 
-pie( mytable,labels = lbls,main = "pie chart") 
-hist(titanic$Age, xlab = "gender", ylab = "frequency") 
-barplot(table(notSurvivedList$Sex), xlab = "gender", ylab = "frequency") 
-temp <- density(table(survivedList$Fare)) 
-plot(temp, type = "n", main = "fare charged") 
-polygon(temp, col = "lightgray", border = "gray") 
-boxplot(titanic$Fare, main = "fare")
-
+library(titanic)
+data("titanic_train")
+head(titanic_train)
+titanic_train$Sex = as.factor(titanic_train$Sex)
+titanic_train$Survived = as.factor(titanic_train$Survived)
+summary(titanic_train)
+dropnull_titanic = titanic_train[rowSums(is.na(titanic_train)) <= 0, ]
+survivedList = dropnull_titanic[dropnull_titanic$Survived == 1 , ]
+notSurvivedList = dropnull_titanic[dropnull_titanic$Survived == 0, ]
+mytable <- table(titanic_train$Survived)
+lbls <- paste(names(mytable), "\n", mytable, sep = "")
+pie(mytable, labels = lbls, main = "Pie chart of Survival Distribution")
+hist(titanic_train$Age, xlab = "Age", ylab = "Frequency", main = "Histogram of Age")
+barplot(table(notSurvivedList$Sex), xlab = "Gender", ylab = "Frequency", main = "Barplot of Non-Survivors by Gender")
+temp <- density(survivedList$Fare, na.rm = TRUE)
+plot(temp, type = "n", main = "Fare Charged to Survivors")
+polygon(temp, col = "lightgray", border = "gray")
+boxplot(titanic_train$Fare, main = "Boxplot of Fare")
 
 
 library(caTools)
@@ -155,24 +186,55 @@ legend(0.6, 0.4, paste("AUC =", round(auc_value, 4)), title = "AUC", cex = 1)
 
 
 
-library(tidyverse)
+# Load required libraries
 library(partykit)
 library(caTools)
-weatherdata <- read.csv("C:/Users/Naveen/Documents/seattle-weather.csv")
-head(weatherdata)
-str(weatherdata)
-weatherdata$weather <- as.factor(weatherdata$weather)
-split=sample.split(weatherdata$weather, SplitRatio=0.8)
-train=subset(weatherdata, split==TRUE)
-test=subset(weatherdata, split==FALSE)
-model <- ctree(weather ~ precipitation + temp_max + temp_min + wind, data = train)
-plot(model)
-predict_model <- predict(model, test)
-mat <- table(test$weather, predict_model)
-print(mat)
-accuracy <- sum(diag(mat)) / sum(mat)
-print(paste("Accuracy:", accuracy))
 
+# Set seed for reproducibility
+set.seed(123)
+
+# Create a sample weather dataset with some correlation
+weatherdata <- data.frame(
+  Temperature = rnorm(200, mean = 20, sd = 5),       # Random temperatures around 20 degrees
+  Humidity = rnorm(200, mean = 75, sd = 10),         # Random humidity percentages around 75%
+  WindSpeed = rnorm(200, mean = 10, sd = 3),         # Random wind speeds around 10 km/h
+  RainToday = sample(c("Yes", "No"), 200, replace = TRUE)  # Random yes/no for rain today
+)
+
+# Create RainTomorrow with some dependency on Humidity and Temperature
+weatherdata$RainTomorrow <- with(weatherdata, ifelse(Humidity > 70 & Temperature < 22, "Yes", "No"))
+weatherdata$RainTomorrow <- as.factor(weatherdata$RainTomorrow)
+
+# Convert RainToday to a factor as well
+weatherdata$RainToday <- as.factor(weatherdata$RainToday)
+
+# Split the data into training and testing sets
+sample <- sample(c(TRUE, FALSE), nrow(weatherdata), replace = TRUE, prob = c(0.8, 0.2))
+train <- weatherdata[sample, ]
+test <- weatherdata[!sample, ]
+
+# Ensure 'RainTomorrow' is a factor (target variable)
+train$RainTomorrow <- as.factor(train$RainTomorrow)
+test$RainTomorrow <- as.factor(test$RainTomorrow)
+
+# Build the decision tree model
+control <- ctree_control(mincriterion = 0.95, minsplit = 10) # Adjust control for better splitting
+model <- ctree(RainTomorrow ~ Temperature + Humidity + WindSpeed + RainToday, data = train, control = control)
+
+# Plot the decision tree
+plot(model, main = "Decision Tree for Predicting RainTomorrow")
+
+# Make predictions on the test set
+predict_model <- predict(model, newdata = test)
+
+# Create a confusion matrix
+mat <- table(test$RainTomorrow, predict_model)
+print("Confusion Matrix:")
+print(mat)
+
+# Calculate accuracy
+accuracy <- sum(diag(mat)) / sum(mat)
+print(paste("Accuracy:", round(accuracy * 100, 2), "%"))
 
 
 
