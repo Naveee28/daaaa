@@ -1,3 +1,4 @@
+1.
 library(tidyverse)
 x<-sample(1:21,20,replace=TRUE)
 y<-sample(1:10,20,replace=TRUE)
@@ -17,7 +18,7 @@ newcars<-mtcars%>%
 view(newcars)
 
 
-
+2.
 arr<-c(1,2,3,4,5,6,7,8,9,10)
 #min-max
 minarr<-min(arr)
@@ -36,7 +37,7 @@ for(i in 1:10){
 print(arr2)
 
 
-
+3.
 library(leaps)
 view(Titanic)
 sum(is.na(Titanic))
@@ -53,7 +54,7 @@ coef(fwd,3)
 coef(bwd,3)
 coef(full,3)
 
-
+4.
 # Install and load necessary packages
 install.packages("tidyr")  # For drop_na function
 library(tidyr)
@@ -105,6 +106,7 @@ day_clean <- drop_na(day)
 boxplot(day_clean[, c("temp", "hum", "windspeed")], main = "Boxplots of Cleaned Data")
 
 
+5.
 library(titanic)
 data("titanic_train")
 head(titanic_train)
@@ -125,6 +127,8 @@ polygon(temp, col = "lightgray", border = "gray")
 boxplot(titanic_train$Fare, main = "Boxplot of Fare")
 
 
+
+6.
 library(caTools)
 library(ggplot2)
 data<-data.frame(
@@ -141,6 +145,8 @@ ggplot()+geom_point(aes(x=train$Years_Exp,y=train$Salary),col='red')+geom_line(a
 
 
 
+
+7.
 # Libraries
 library(tidyverse)
 library(ROCR)
@@ -186,6 +192,8 @@ legend(0.6, 0.4, paste("AUC =", round(auc_value, 4)), title = "AUC", cex = 1)
 
 
 
+
+8.
 # Load required libraries
 library(partykit)
 library(caTools)
@@ -238,6 +246,7 @@ print(paste("Accuracy:", round(accuracy * 100, 2), "%"))
 
 
 
+9.
 library(lubridate)
 library(forecast)
 positiveCases <- c(580, 7813, 28266, 59287, 75700, 87820, 95314, 126214, 
@@ -261,6 +270,7 @@ message("timeseries.png has been created.")
 
 
 
+10.
 View(airquality) 
 barplot(airquality$Ozone,  
         main = 'Ozone Concenteration in air',  
